@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>Excel Formula Helper — สร้างสูตรง่าย ๆ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --accent: #2b8cff;
+      --accent-2: #4caf50;
+      --muted: #6b7280;
+      --glass: rgba(255,255,255,0.7);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #e6f0ff 0%, var(--bg) 100%);
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 20px rgba(11,20,60,0.08);
+    }
+
+    /* left sidebar */
+    .panel-left h2 { margin: 0 0 12px; font-size: 18px; }
+    .func-list { display: grid; gap: 8px; max-height: 66vh; overflow:auto; padding-right: 6px;}
+    .func-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(180deg, #fff, #fbfdff);
+      border: 1px solid rgba(15,23,42,0.04);
+      display:flex; align-items:center; gap:10px;
+      transition: all .14s ease;
+    }
+    .func-item:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(11,20,60,0.06); }
+    .func-item.active { border-color: var(--accent); background: linear-gradient(180deg,#e9f2ff,#f9fdff); }
+
+    .func-name { font-weight: 600; }
+    .func-desc { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+    /* right content */
+    .panel-right { display:flex; flex-direction:column; gap:12px; }
+    .title-row { display:flex; gap:12px; align-items:center; }
+    .title { font-size:20px; margin:0; }
+    .subtitle { color:var(--muted); font-size:13px; }
+
+    .form {
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      padding: 12px;
+      border-radius:10px;
+      background: linear-gradient(180deg, var(--glass), #fff);
+      border:1px solid rgba(11,20,60,0.03);
+    }
+    .field { display:flex; flex-direction:column; min-width: 200px; gap:6px; }
+    .field label { font-size:13px; color:var(--muted); }
+    .field input, .field select, .field textarea {
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid #e6eefb;
+      background: white;
+      outline:none;
+      font-size:14px;
+    }
+    .actions { display:flex; gap:8px; margin-left:auto; align-items:center; }
+
+    .preview {
+      background: linear-gradient(180deg,#fbfdff,#ffffff);
+      border:1px solid rgba(11,20,60,0.03);
+      padding:14px;
+      border-radius:10px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .formula-box {
+      font-family: "Courier New", monospace;
+      background: #0f172a;
+      color: #e6f3ff;
+      padding:10px 12px;
+      border-radius:8px;
+      min-width: 320px;
+      word-break:break-all;
+    }
+    .btn {
+      padding:10px 14px;
+      border-radius:8px;
+      border:none;
+      font-weight:600;
+      cursor:pointer;
+      background:var(--accent);
+      color:white;
+    }
+    .btn.ghost {
+      background: transparent;
+      border:1px solid rgba(11,20,60,0.06);
+      color:var(--muted);
+    }
+    .helper { font-size:13px; color:var(--muted); }
+
+    .example {
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      padding:12px;
+      border-radius:8px;
+      border:1px solid rgba(11,20,60,0.03);
+      font-size:14px;
+    }
+
+    .footer {
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .panel-left { order: 2; }
+      .panel-right { order: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="panel panel-left">
+      <h2>Functions</h2>
+      <input type="text" id="funcSearch" placeholder="Search functions..." style="
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #e6eefb;
+    margin-bottom: 10px;
+    font-size: 14px;
+">
+      <div class="func-list" id="funcList"></div>
+      <div style="height:10px"></div>
+      <div class="helper">เลือกฟังก์ชัน — ฟอร์มด้านขวาจะเปลี่ยนตามการเลือก</div>
+    </div>
+
+    <div class="panel panel-right">
+      <div class="title-row">
+        <div>
+          <h3 class="title" id="funcTitle">Excel Formula Helper</h3>
+          <div class="subtitle" id="funcSubtitle">เลือกสูตรจากซ้ายเพื่อเริ่ม</div>
+        </div>
+        <div style="margin-left:auto" class="helper">Output: <b>Excel (อังกฤษ)</b></div>
+      </div>
+
+      <div id="formArea" class="form" style="display:none;"></div>
+
+      <div class="preview">
+        <div style="flex:1">
+          <div class="helper">Preview</div>
+          <div class="formula-box" id="formulaBox">=VLOOKUP(A2,B2:C100,2,FALSE)</div>
+          <div style="margin-top:8px; display:flex; gap:8px;">
+            <button class="btn" id="copyBtn">Copy สูตร</button>
+            <button class="btn ghost" id="fillExampleBtn">Fill ตัวอย่าง</button>
+            <button class="btn ghost" id="clearBtn">ล้างค่า</button>
+          </div>
+        </div>
+        <div style="width:320px">
+          <div class="helper">คำอธิบาย</div>
+          <div class="example" id="funcExplain">
+            เลือกฟังก์ชันด้านซ้ายเพื่อดูคำอธิบายและพารามิเตอร์
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div id="status" style="margin-right:auto"></div>
+        <div>Made for Office users • Export formula & paste in Excel</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************
+     * Utility helpers
+     ********************/
+    const el = (id) => document.getElementById(id);
+
+    // detect if input is a cell or range reference (basic)
+    const funcSearchEl = el("funcSearch");
+
+funcSearchEl.addEventListener("input", filterFunctions);
+
+function filterFunctions() {
+  const q = funcSearchEl.value.toLowerCase();
+  document.querySelectorAll(".func-item").forEach(item => {
+    const key = item.dataset.key.toLowerCase();
+    const title = item.querySelector(".func-name").textContent.toLowerCase();
+    const desc = item.querySelector(".func-desc").textContent.toLowerCase();
+    if (key.includes(q) || title.includes(q) || desc.includes(q)) {
+      item.style.display = "flex";
+    } else {
+      item.style.display = "none";
+    }
+  });
+}
+
+    function isCellOrRange(v) {
+      if (!v || typeof v !== 'string') return false;
+      // allow sheet names like Sheet1!A1 or 'My Sheet'!A1
+      // Basic rule: contains letters then numbers OR colon for range
+      const simple = /^([A-Za-z_][A-Za-z0-9_\s]*!)?[A-Za-z]{1,3}[0-9]{1,7}(:[A-Za-z]{1,3}[0-9]{1,7})?$/;
+      const sheetQuoted = /^'[^']+'![A-Za-z]{1,3}[0-9]{1,7}(:[A-Za-z]{1,3}[0-9]{1,7})?$/;
+      return simple.test(v.trim()) || sheetQuoted.test(v.trim());
+    }
+    function isNumber(v) {
+      return /^-?\d+(\.\d+)?$/.test(String(v).trim());
+    }
+    function isBoolean(v) {
+      return /^(TRUE|FALSE)$/i.test(String(v).trim());
+    }
+    function quoteIfNeeded(v) {
+      if (v === undefined || v === null) return '""';
+      const s = String(v).trim();
+      if (s === "") return '""';
+      if (isNumber(s) || isBoolean(s) || isCellOrRange(s)) return s;
+      // if user types a formula-like start "=" keep as-is
+      if (s.startsWith("=")) return s;
+      // otherwise escape double quotes
+      return `"${s.replace(/"/g,'""')}"`;
+    }
+    function safeLabel(s) {
+      return (s || "").replace(/\s+/g,' ').trim();
+    }
+
+    /********************
+     * Functions definitions
+     * Each function: key -> {title, desc, params[], build(params)}
+     ********************/
+    const FUNCTIONS = {
+      "VLOOKUP": {
+        title: "VLOOKUP",
+        desc: "ค้นหาค่าจากคอลัมน์ซ้ายสุดของตาราง แล้วคืนค่าจากคอลัมน์ที่ระบุ (exact match หรือ approximate)",
+        params: [
+          { key: "lookup_value", label: "Lookup value (A2 หรือ \"John\")", placeholder: 'A2 or "John"', type: "text" },
+          { key: "table_array", label: "Table array (B2:C100)", placeholder: "B2:C100", type: "text" },
+          { key: "col_index", label: "Column index (เช่น 2)", placeholder: "2", type: "number" },
+          { key: "range_lookup", label: "Exact match?", type: "select", options: [{v:"FALSE",t:"Exact (FALSE)"},{v:"TRUE",t:"Approx (TRUE)"}] }
+        ],
+        build: (p) => `=VLOOKUP(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.table_array)},${quoteIfNeeded(p.col_index)},${quoteIfNeeded(p.range_lookup)})`,
+        example: "=VLOOKUP(A2,B2:D100,3,FALSE)"
+      },
+
+      "INDEX/MATCH": {
+        title: "INDEX + MATCH",
+        desc: "ใช้ INDEX กับ MATCH แทน VLOOKUP เมื่อต้องการ lookup ทางซ้ายหรือผลที่ยืดหยุ่นกว่า",
+        params: [
+          { key: "lookup_value", label: "Lookup value (A2)", placeholder: "A2", type: "text" },
+          { key: "lookup_range", label: "Lookup range (B2:B100)", placeholder: "B2:B100", type: "text" },
+          { key: "return_range", label: "Return range (C2:C100)", placeholder: "C2:C100", type: "text" },
+          { key: "match_type", label: "Match type", type: "select", options: [{v:0,t:"Exact (0)"},{v:1,t:"Approx (1)"}] }
+        ],
+        build: (p) => `=INDEX(${quoteIfNeeded(p.return_range)},MATCH(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.lookup_range)},${quoteIfNeeded(p.match_type)}))`,
+        example: "=INDEX(C2:C100,MATCH(A2,B2:B100,0))"
+      },
+
+      "IF": {
+        title: "IF",
+        desc: "ตรรกะ if — ถ้าเงื่อนไขเป็นจริง ให้ค่าหนึ่ง มิฉะนั้นให้ค่าอีกค่าหนึ่ง",
+        params: [
+          { key: "condition", label: "Condition (เช่น A2>100)", placeholder: "A2>100", type: "text" },
+          { key: "value_if_true", label: "Value if TRUE (\"Pass\" หรือ 1)", placeholder: '"Pass"', type: "text" },
+          { key: "value_if_false", label: "Value if FALSE (\"Fail\" หรือ 0)", placeholder: '"Fail"', type: "text" }
+        ],
+        build: (p) => `=IF(${p.condition},${quoteIfNeeded(p.value_if_true)},${quoteIfNeeded(p.value_if_false)})`,
+        example: '=IF(A2>=50,"Pass","Fail")'
+      },
+
+      "SUMIF": {
+        title: "SUMIF",
+        desc: "รวมค่าที่ตรงตามเงื่อนไข",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A100)", placeholder: "A2:A100", type: "text" },
+          { key: "criteria", label: "Criteria (เช่น \">100\" or \"Apple\")", placeholder: ">100", type: "text" },
+          { key: "sum_range", label: "Sum range (optional)", placeholder: "B2:B100", type: "text", optional: true }
+        ],
+        build: (p) => {
+          if (p.sum_range && p.sum_range.trim()!=="") return `=SUMIF(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)},${quoteIfNeeded(p.sum_range)})`;
+          return `=SUMIF(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)})`;
+        },
+        example: '=SUMIF(A2:A100,">100",B2:B100)'
+      },
+
+      "COUNTIF": {
+        title: "COUNTIF",
+        desc: "นับจำนวนเซลล์ที่ตรงตามเงื่อนไข",
+        params:[
+          { key: "range", label: "Range (A2:A100)", placeholder: "A2:A100", type: "text" },
+          { key: "criteria", label: "Criteria (เช่น \"=Done\" หรือ \">=50\")", placeholder: "Done", type:"text" }
+        ],
+        build:(p)=> `=COUNTIF(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)})`,
+        example: '=COUNTIF(B2:B100,"Done")'
+      },
+
+      "CONCAT": {
+        title: "CONCAT / CONCATENATE",
+        desc: "เชื่อมข้อความหลายค่าเข้าด้วยกัน (ใช้ & หรือ CONCAT/TEXTJOIN)",
+        params:[
+          { key: "part1", label: "ส่วนที่ 1 (A2 or \"Mr.\")", placeholder: 'A2 or "Mr."', type: "text" },
+          { key: "separator", label: "เชื่อมด้วย (วางช่องว่างหรือ \", \" )", placeholder: ' " " (space) or ", "', type:"text", optional:true },
+          { key: "part2", label: "ส่วนที่ 2 (B2 or \"Smith\")", placeholder: 'B2 or "Smith"', type:"text", optional:true },
+        ],
+        build:(p)=>{
+          const s = p.separator && p.separator.trim()!=="" ? `&${quoteIfNeeded(p.separator)}&` : "&";
+          const part2 = (p.part2 && p.part2.trim()!=="") ? `${s}${quoteIfNeeded(p.part2)}` : "";
+          return `=${quoteIfNeeded(p.part1)}${part2}`.replace(/^=""&/,"=");
+        },
+        example: '=A2 & " " & B2'
+      },
+
+      "TEXTJOIN": {
+        title: "TEXTJOIN",
+        desc: "เชื่อมข้อความแบบมีตัวคั่น (Excel ใหม่กว่า)",
+        params:[
+          { key: "delimiter", label: "Delimiter (เช่น \", \" หรือ \" \")", placeholder: '", "', type:"text" },
+          { key: "ignore_empty", label: "Ignore empty? (TRUE/FALSE)", placeholder: "TRUE", type:"select", options:[{v:"TRUE",t:"TRUE"},{v:"FALSE",t:"FALSE"}] },
+          { key: "range", label: "Range / values (A2:C2)", placeholder: "A2:C2", type:"text" }
+        ],
+        build:(p)=> `=TEXTJOIN(${quoteIfNeeded(p.delimiter)},${quoteIfNeeded(p.ignore_empty)},${quoteIfNeeded(p.range)})`,
+        example: '=TEXTJOIN(" ",TRUE,A2:C2)'
+      },
+
+      "LEFT/RIGHT/MID": {
+        title: "LEFT / RIGHT / MID",
+        desc: "ดึงอักษรจากข้อความ",
+        params:[
+          { key:"which", label:"Function", type:"select", options:[{v:"LEFT",t:"LEFT"},{v:"RIGHT",t:"RIGHT"},{v:"MID",t:"MID"}] },
+          { key:"text", label:"Text or cell (A2 or \"Hello\")", type:"text", placeholder:"A2" },
+          { key:"num1", label:"Num chars (for LEFT/RIGHT) or start pos (for MID)", type:"number", placeholder:"3" },
+          { key:"num2", label:"[MID] number of chars (only for MID)", type:"number", optional:true, placeholder:"2" }
+        ],
+        build:(p)=>{
+          if (p.which === "MID") return `=MID(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num1)},${quoteIfNeeded(p.num2||1)})`;
+          return `=${p.which}(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num1)})`;
+        },
+        example: '=LEFT(A2,3)'
+      },
+
+      "SUBSTITUTE": {
+        title: "SUBSTITUTE",
+        desc: "แทนที่ข้อความบางส่วนในสตริง",
+        params:[
+          { key:"text", label:"Text or cell", type:"text", placeholder:"A2" },
+          { key:"old_text", label:"Old text", type:"text", placeholder:"apple" },
+          { key:"new_text", label:"New text", type:"text", placeholder:"orange" },
+          { key:"instance_num", label:"Instance (optional)", type:"number", optional:true, placeholder:"(e.g. 2)" }
+        ],
+        build:(p)=>{
+          if (p.instance_num && String(p.instance_num).trim()!=="") return `=SUBSTITUTE(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.old_text)},${quoteIfNeeded(p.new_text)},${quoteIfNeeded(p.instance_num)})`;
+          return `=SUBSTITUTE(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.old_text)},${quoteIfNeeded(p.new_text)})`;
+        },
+        example: '=SUBSTITUTE(A2,"apple","orange")'
+      },
+
+      "TODAY/DATE": {
+        title: "TODAY / DATE",
+        desc: "สร้างวันที่ปัจจุบัน หรือวันที่เฉพาะ",
+        params:[
+          { key:"mode", label:"Choose", type:"select", options:[{v:"TODAY",t:"TODAY() (current date)"},{v:"DATE",t:"DATE(year,month,day)"}] },
+          { key:"year", label:"Year (for DATE)", type:"number", optional:true },
+          { key:"month", label:"Month (for DATE)", type:"number", optional:true },
+          { key:"day", label:"Day (for DATE)", type:"number", optional:true }
+        ],
+        build:(p)=> p.mode==="TODAY" ? "=TODAY()" : `=DATE(${quoteIfNeeded(p.year||2023)},${quoteIfNeeded(p.month||1)},${quoteIfNeeded(p.day||1)})`,
+        example: "=TODAY()"
+      }
+    };
+
+    /********************
+     * App state
+     ********************/
+    let STATE = {
+      selectedFunc: null,
+      values: {}
+    };
+
+    /********************
+     * Render function list
+     ********************/
+    const funcListEl = el("funcList");
+    function renderFunctionList() {
+      funcListEl.innerHTML = "";
+      Object.keys(FUNCTIONS).forEach((k)=>{
+        const f = FUNCTIONS[k];
+        const div = document.createElement("div");
+        div.className = "func-item";
+        div.dataset.key = k;
+        div.innerHTML = `<div style="display:flex;flex-direction:column">
+          <div class="func-name">${f.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">${safeLabel(f.desc)}</div>
+        </div>
+        <div class="func-desc">${k}</div>`;
+        div.addEventListener("click", ()=> selectFunction(k));
+        funcListEl.appendChild(div);
+      });
+    }
+
+    /********************
+     * Select function
+     ********************/
+    const formArea = el("formArea");
+    const funcTitle = el("funcTitle");
+    const funcSubtitle = el("funcSubtitle");
+    const funcExplain = el("funcExplain");
+    const formulaBox = el("formulaBox");
+    const copyBtn = el("copyBtn");
+    const fillExampleBtn = el("fillExampleBtn");
+    const clearBtn = el("clearBtn");
+    const status = el("status");
+
+    function selectFunction(key) {
+      STATE.selectedFunc = key;
+      STATE.values = {}; // reset
+      // highlight active
+      document.querySelectorAll(".func-item").forEach(x=> x.classList.toggle("active", x.dataset.key===key));
+      const f = FUNCTIONS[key];
+      funcTitle.textContent = f.title;
+      funcSubtitle.textContent = f.desc;
+      funcExplain.innerHTML = `<b>Example:</b> <code>${f.example || ""}</code><br/><br/>${safeLabel(f.desc)}`;
+      // build form
+      formArea.style.display = "flex";
+      formArea.innerHTML = "";
+      f.params.forEach(p=>{
+        const field = document.createElement("div");
+        field.className = "field";
+        const id = `p_${p.key}`;
+        const label = document.createElement("label");
+        label.textContent = p.label + (p.optional ? " (optional)" : "");
+        field.appendChild(label);
+
+        if (p.type === "select") {
+          const sel = document.createElement("select");
+          sel.id = id;
+          p.options.forEach(o => {
+            const op = document.createElement("option");
+            op.value = o.v; op.textContent = o.t;
+            sel.appendChild(op);
+          });
+          sel.addEventListener("input", onInputChange);
+          field.appendChild(sel);
+        } else if (p.type === "textarea") {
+          const ta = document.createElement("textarea");
+          ta.id = id;
+          ta.placeholder = p.placeholder || "";
+          ta.addEventListener("input", onInputChange);
+          field.appendChild(ta);
+        } else {
+          const inp = document.createElement("input");
+          inp.id = id;
+          inp.type = p.type === "number" ? "text" : "text";
+          inp.placeholder = p.placeholder || "";
+          inp.addEventListener("input", onInputChange);
+          field.appendChild(inp);
+        }
+        formArea.appendChild(field);
+      });
+
+      // actions area
+      const actionDiv = document.createElement("div");
+      actionDiv.className = "actions";
+      const copyHint = document.createElement("div");
+      copyHint.className = "helper";
+      copyHint.textContent = "คลิก Copy เพื่อคัดลอกสูตรไปวางใน Excel";
+      actionDiv.appendChild(copyHint);
+      formArea.appendChild(actionDiv);
+
+      updateFormula();
+    }
+
+    function onInputChange(e) {
+      // update state values based on inputs
+      const inputs = formArea.querySelectorAll("input,select,textarea");
+      STATE.values = {};
+      inputs.forEach(i=>{
+        const k = i.id.replace(/^p_/,"");
+        STATE.values[k] = i.value;
+      });
+      updateFormula();
+    }
+
+    function updateFormula() {
+      if (!STATE.selectedFunc) {
+        formulaBox.textContent = "=SELECT_FUNCTION()";
+        return;
+      }
+      const f = FUNCTIONS[STATE.selectedFunc];
+      try {
+        const formula = f.build(STATE.values);
+        formulaBox.textContent = formula;
+      } catch (err) {
+        formulaBox.textContent = "#ERROR";
+        console.error(err);
+      }
+    }
+
+    // copy to clipboard
+    copyBtn.addEventListener("click", async ()=>{
+      const txt = formulaBox.textContent;
+      try {
+        await navigator.clipboard.writeText(txt);
+        status.textContent = "คัดลอกเรียบร้อย ✅";
+        setTimeout(()=> status.textContent = "", 2500);
+      } catch(e) {
+        status.textContent = "ไม่สามารถคัดลอกได้ (browser blocked)";
+      }
+    });
+
+    // fill example values
+    fillExampleBtn.addEventListener("click", ()=>{
+      if (!STATE.selectedFunc) return;
+      const f = FUNCTIONS[STATE.selectedFunc];
+      // simple mapping from example to fill fields if possible
+      // we'll fill reasonable default for common keys
+      const defaults = {
+        lookup_value: "A2",
+        table_array: "B2:D100",
+        col_index: "2",
+        range_lookup: "FALSE",
+        lookup_range: "B2:B100",
+        return_range: "C2:C100",
+        condition: "A2>100",
+        value_if_true: '"Yes"',
+        value_if_false: '"No"',
+        range: "A2:A100",
+        criteria: '">100"',
+        part1: "A2",
+        part2: "B2",
+        separator: '" "',
+        delimiter: '", "',
+        ignore_empty: "TRUE",
+        which: "LEFT",
+        text: "A2",
+        num1: "3",
+        num2: "2",
+        old_text: '"apple"',
+        new_text: '"orange"',
+        mode: "TODAY",
+        year: new Date().getFullYear(),
+        month: (new Date().getMonth()+1),
+        day: new Date().getDate()
+      };
+      // fill inputs
+      const inputs = formArea.querySelectorAll("input,select,textarea");
+      inputs.forEach(i=>{
+        const k = i.id.replace(/^p_/,"");
+        if (defaults[k] !== undefined) i.value = defaults[k];
+        else if (i.value === "") {
+          // leave blank
+        }
+      });
+      // trigger update
+      onInputChange();
+    });
+
+    // clear form
+    clearBtn.addEventListener("click", ()=>{
+      const inputs = formArea.querySelectorAll("input,select,textarea");
+      inputs.forEach(i=>{
+        i.value = "";
+        if (i.tagName.toLowerCase()==="select" && i.options.length>0) i.selectedIndex = 0;
+      });
+      onInputChange();
+    });
+
+    // initial render
+    renderFunctionList();
+
+    // auto select VLOOKUP to start
+    selectFunction("VLOOKUP");
+
+    /********************
+     * Notes / Next steps for you
+     ********************/
+    /* Tips you can add later:
+      - Add copy-as-GoogleSheets (same formula mostly, but different locales)
+      - Add locale toggle for separators (comma vs semicolon)
+      - Add function translations (Excel Thai function names) if you need local Excel
+      - Save favorite formulas (localStorage)
+      - Build Office Add-in (Office.js) to paste directly into cell
+      - Provide 'apply to column' generator that fills formulas down (e.g. $A$2/$B2)
+    */
+  </script>
+</body>
+</html>
