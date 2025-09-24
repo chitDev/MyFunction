@@ -256,7 +256,7 @@ function filterFunctions() {
      * Each function: key -> {title, desc, params[], build(params)}
      ********************/
     const FUNCTIONS = {
-      "VLOOKUP": {
+"VLOOKUP": {
         title: "VLOOKUP",
         desc: "ค้นหาค่าจากคอลัมน์ซ้ายสุดของตาราง แล้วคืนค่าจากคอลัมน์ที่ระบุ (exact match หรือ approximate)",
         params: [
@@ -268,8 +268,7 @@ function filterFunctions() {
         build: (p) => `=VLOOKUP(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.table_array)},${quoteIfNeeded(p.col_index)},${quoteIfNeeded(p.range_lookup)})`,
         example: "=VLOOKUP(A2,B2:D100,3,FALSE)"
       },
-
-      "INDEX/MATCH": {
+"INDEX_MATCH": {
         title: "INDEX + MATCH",
         desc: "ใช้ INDEX กับ MATCH แทน VLOOKUP เมื่อต้องการ lookup ทางซ้ายหรือผลที่ยืดหยุ่นกว่า",
         params: [
@@ -281,8 +280,7 @@ function filterFunctions() {
         build: (p) => `=INDEX(${quoteIfNeeded(p.return_range)},MATCH(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.lookup_range)},${quoteIfNeeded(p.match_type)}))`,
         example: "=INDEX(C2:C100,MATCH(A2,B2:B100,0))"
       },
-
-      "IF": {
+"IF": {
         title: "IF",
         desc: "ตรรกะ if — ถ้าเงื่อนไขเป็นจริง ให้ค่าหนึ่ง มิฉะนั้นให้ค่าอีกค่าหนึ่ง",
         params: [
@@ -293,8 +291,7 @@ function filterFunctions() {
         build: (p) => `=IF(${p.condition},${quoteIfNeeded(p.value_if_true)},${quoteIfNeeded(p.value_if_false)})`,
         example: '=IF(A2>=50,"Pass","Fail")'
       },
-
-      "SUMIF": {
+"SUMIF": {
         title: "SUMIF",
         desc: "รวมค่าที่ตรงตามเงื่อนไข",
         params: [
@@ -308,8 +305,7 @@ function filterFunctions() {
         },
         example: '=SUMIF(A2:A100,">100",B2:B100)'
       },
-
-      "COUNTIF": {
+"COUNTIF": {
         title: "COUNTIF",
         desc: "นับจำนวนเซลล์ที่ตรงตามเงื่อนไข",
         params:[
@@ -319,8 +315,7 @@ function filterFunctions() {
         build:(p)=> `=COUNTIF(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)})`,
         example: '=COUNTIF(B2:B100,"Done")'
       },
-
-      "CONCAT": {
+"CONCAT": {
         title: "CONCAT / CONCATENATE",
         desc: "เชื่อมข้อความหลายค่าเข้าด้วยกัน (ใช้ & หรือ CONCAT/TEXTJOIN)",
         params:[
@@ -335,8 +330,7 @@ function filterFunctions() {
         },
         example: '=A2 & " " & B2'
       },
-
-      "TEXTJOIN": {
+"TEXTJOIN": {
         title: "TEXTJOIN",
         desc: "เชื่อมข้อความแบบมีตัวคั่น (Excel ใหม่กว่า)",
         params:[
@@ -347,24 +341,41 @@ function filterFunctions() {
         build:(p)=> `=TEXTJOIN(${quoteIfNeeded(p.delimiter)},${quoteIfNeeded(p.ignore_empty)},${quoteIfNeeded(p.range)})`,
         example: '=TEXTJOIN(" ",TRUE,A2:C2)'
       },
+"LEFT": {
+    title: "LEFT",
+    desc: "ดึงอักษรจากด้านซ้ายของข้อความ",
+    params:[
+      { key:"text", label:"Text or cell (A2 or \"Hello\")", type:"text", placeholder:"A2" },
+      { key:"num_chars", label:"Number of characters", type:"number", placeholder:"3" }
+    ],
+    build:(p)=> `=LEFT(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num_chars)})`,
+    example: '=LEFT(A2,3)'
+},
 
-      "LEFT/RIGHT/MID": {
-        title: "LEFT / RIGHT / MID",
-        desc: "ดึงอักษรจากข้อความ",
-        params:[
-          { key:"which", label:"Function", type:"select", options:[{v:"LEFT",t:"LEFT"},{v:"RIGHT",t:"RIGHT"},{v:"MID",t:"MID"}] },
-          { key:"text", label:"Text or cell (A2 or \"Hello\")", type:"text", placeholder:"A2" },
-          { key:"num1", label:"Num chars (for LEFT/RIGHT) or start pos (for MID)", type:"number", placeholder:"3" },
-          { key:"num2", label:"[MID] number of chars (only for MID)", type:"number", optional:true, placeholder:"2" }
-        ],
-        build:(p)=>{
-          if (p.which === "MID") return `=MID(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num1)},${quoteIfNeeded(p.num2||1)})`;
-          return `=${p.which}(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num1)})`;
-        },
-        example: '=LEFT(A2,3)'
-      },
+"RIGHT": {
+    title: "RIGHT",
+    desc: "ดึงอักษรจากด้านขวาของข้อความ",
+    params:[
+      { key:"text", label:"Text or cell", type:"text", placeholder:"A2" },
+      { key:"num_chars", label:"Number of characters", type:"number", placeholder:"2" }
+    ],
+    build:(p)=> `=RIGHT(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.num_chars)})`,
+    example: '=RIGHT(A2,2)'
+},
 
-      "SUBSTITUTE": {
+"MID": {
+    title: "MID",
+    desc: "ดึงอักษรจากตำแหน่งที่กำหนด",
+    params:[
+      { key:"text", label:"Text or cell", type:"text", placeholder:"A2" },
+      { key:"start_num", label:"Start position", type:"number", placeholder:"2" },
+      { key:"num_chars", label:"Number of characters", type:"number", placeholder:"3" }
+    ],
+    build:(p)=> `=MID(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.start_num)},${quoteIfNeeded(p.num_chars)})`,
+    example: '=MID(A2,2,3)'
+}
+,
+"SUBSTITUTE": {
         title: "SUBSTITUTE",
         desc: "แทนที่ข้อความบางส่วนในสตริง",
         params:[
@@ -379,8 +390,7 @@ function filterFunctions() {
         },
         example: '=SUBSTITUTE(A2,"apple","orange")'
       },
-
-      "TODAY/DATE": {
+"TODAY_DATE": {
         title: "TODAY / DATE",
         desc: "สร้างวันที่ปัจจุบัน หรือวันที่เฉพาะ",
         params:[
@@ -392,7 +402,1320 @@ function filterFunctions() {
         build:(p)=> p.mode==="TODAY" ? "=TODAY()" : `=DATE(${quoteIfNeeded(p.year||2023)},${quoteIfNeeded(p.month||1)},${quoteIfNeeded(p.day||1)})`,
         example: "=TODAY()"
       }
-    };
+    ,
+"SUM": {
+        title: "SUM",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUM(${quoteIfNeeded(p.range)})`,
+        example: "=SUM(A2:A10)"
+      },
+"AVERAGE": {
+        title: "AVERAGE",
+        desc: "ค่าเฉลี่ยจากช่วง",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=AVERAGE(${quoteIfNeeded(p.range)})`,
+        example: "=AVERAGE(A2:A10)"
+      },
+"AVERAGEIF": {
+        title: "AVERAGEIF",
+        desc: "รวมหรือนับตามเงื่อนไข",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A100)", placeholder: "A2:A100", type: "text" },
+          { key: "criteria", label: "Criteria", placeholder: ">100", type: "text" }
+        ],
+        build: (p) => `=AVERAGEIF(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)})`,
+        example: '=AVERAGEIF(A2:A100,">100")'
+      },
+"AVERAGEIFS": {
+    title: "AVERAGEIFS",
+    desc: "หาค่าเฉลี่ยจากเซลล์ที่ตรงตามหลายเงื่อนไข",
+    params: [
+      { key: "avg_range", label: "Average range (เช่น B2:B100)", placeholder: "B2:B100", type: "text" },
+      { key: "criteria_range1", label: "Criteria range 1 (เช่น A2:A100)", placeholder: "A2:A100", type: "text" },
+      { key: "criteria1", label: 'Criteria 1 (เช่น ">100" หรือ "Apple")', placeholder: '>100', type: "text" },
+      // สามารถเพิ่ม criteria_range2, criteria2 ถ้าต้องการเงื่อนไขมากกว่า 1
+    ],
+    build: (p) => `=AVERAGEIFS(${quoteIfNeeded(p.avg_range)},${quoteIfNeeded(p.criteria_range1)},${quoteIfNeeded(p.criteria1)})`,
+    example: '=AVERAGEIFS(B2:B100,A2:A100,">100")'
+},
+"SUMIFS": {
+        title: "SUMIFS",
+        desc: "รวมหรือนับตามเงื่อนไข",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A100)", placeholder: "A2:A100", type: "text" },
+          { key: "criteria", label: 'Criteria (เช่น ">100" หรือ "Apple")', placeholder: ">100", type: "text" },
+          { key: "sum_range", label: "Sum range (optional)", placeholder: "B2:B100", type: "text", optional: true }
+        ],
+        build: (p) => `=SUMIFS(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)},${quoteIfNeeded(p.sum_range)})`,
+        example: '=SUMIFS(A2:A100,">100",B2:B100)'
+      },
+"SUMPRODUCT": {
+        title: "SUMPRODUCT",
+        desc: "ผลคูณรวมของช่วง",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUMPRODUCT(${quoteIfNeeded(p.range)})`,
+        example: "=SUMPRODUCT(A2:A10)"
+      },
+"COUNT": {
+        title: "COUNT",
+        desc: "นับจำนวนตัวเลข",
+        params: [
+          { key: "range", label: "Range or values", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=COUNT(${quoteIfNeeded(p.range)})`,
+        example: "=COUNT(A2:A100)"
+      },
+"COUNTA": {
+        title: "COUNTA",
+        desc: "นับจำนวนที่ไม่ว่าง",
+        params: [
+          { key: "range", label: "Range or values", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=COUNTA(${quoteIfNeeded(p.range)})`,
+        example: "=COUNTA(A2:A100)"
+      },
+"COUNTBLANK": {
+        title: "COUNTBLANK",
+        desc: "นับจำนวนเซลล์",
+        params: [
+          { key: "range", label: "Range or values", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=COUNTBLANK(${quoteIfNeeded(p.range)})`,
+        example: "=COUNTBLANK(A2:A100)"
+      },
+"COUNTIFS": {
+        title: "COUNTIFS",
+        desc: "รวมหรือนับตามเงื่อนไข",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A100)", placeholder: "A2:A100", type: "text" },
+          { key: "criteria", label: 'Criteria (เช่น ">100" หรือ "Apple")', placeholder: ">100", type: "text" },
+          { key: "sum_range", label: "Sum range (optional)", placeholder: "B2:B100", type: "text", optional: true }
+        ],
+        build: (p) => `=COUNTIFS(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.criteria)},${quoteIfNeeded(p.sum_range)})`,
+        example: '=COUNTIFS(A2:A100,">100",B2:B100)'
+      },
+"MAX": {
+        title: "MAX",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=MAX(${quoteIfNeeded(p.range)})`,
+        example: "=MAX()"
+      },
+"MIN": {
+        title: "MIN",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=MIN(${quoteIfNeeded(p.range)})`,
+        example: "=MIN()"
+      },
+"MEDIAN": {
+        title: "MEDIAN",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=MEDIAN(${quoteIfNeeded(p.range)})`,
+        example: "=MEDIAN()"
+      },
+"MODE_SNGL": {
+        title: "MODE.SNGL",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=MODE.SNGL(${quoteIfNeeded(p.range)})`,
+        example: "=MODE.SNGL()"
+      },
+"MODE_MULT": {
+        title: "MODE.MULT",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" }
+        ],
+        build: (p) => `=MODE.MULT(${quoteIfNeeded(p.range)})`,
+        example: "=MODE.MULT()"
+      },
+"STDEV_S": {
+        title: "STDEV.S",
+        desc: "STDEV.S (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=STDEV.S(${quoteIfNeeded(p.arg1)})`,
+        example: "=STDEV.S(A2)"
+      },
+"STDEV_P": {
+        title: "STDEV.P",
+        desc: "STDEV.P (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=STDEV.P(${quoteIfNeeded(p.arg1)})`,
+        example: "=STDEV.P(A2)"
+      },
+"VAR_S": {
+        title: "VAR.S",
+        desc: "VAR.S (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=VAR.S(${quoteIfNeeded(p.arg1)})`,
+        example: "=VAR.S(A2)"
+      },
+"VAR_P": {
+        title: "VAR.P",
+        desc: "VAR.P (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=VAR.P(${quoteIfNeeded(p.arg1)})`,
+        example: "=VAR.P(A2)"
+      },
+"ROUND": {
+        title: "ROUND",
+        desc: "ปัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=ROUND(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=ROUND(A2,0)"
+      },
+"ROUNDUP": {
+        title: "ROUNDUP",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=ROUNDUP(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=ROUNDUP(A2,0)"
+      },
+"ROUNDDOWN": {
+        title: "ROUNDDOWN",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=ROUNDDOWN(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=ROUNDDOWN(A2,0)"
+      },
+"CEILING": {
+        title: "CEILING",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=CEILING(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=CEILING(A2,0)"
+      },
+"FLOOR": {
+        title: "FLOOR",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=FLOOR(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=FLOOR(A2,0)"
+      },
+"INT": {
+        title: "INT",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=INT(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=INT(A2,0)"
+      },
+"TRUNC": {
+        title: "TRUNC",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=TRUNC(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=TRUNC(A2,0)"
+      },
+"MOD": {
+        title: "MOD",
+        desc: "ฟังก์ชันคณิตศาสตร์พื้นฐาน",
+        params: [
+          { key: "number", label: "Number", placeholder: "A2", type: "text" },
+          { key: "divisor", label: "Divisor", placeholder: "2", type: "number" }
+        ],
+        build: (p) => `=MOD(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.divisor)})`,
+        example: "=MOD(A2,2)"
+      },
+"POWER": {
+        title: "POWER",
+        desc: "ฟังก์ชันคณิตศาสตร์พื้นฐาน",
+        params: [
+          { key: "number", label: "Number", placeholder: "A2", type: "text" },
+          { key: "power", label: "Power", placeholder: "2", type: "number" }
+        ],
+        build: (p) => `=POWER(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.power)})`,
+        example: "=POWER(A2,2)"
+      },
+"SQRT": {
+        title: "SQRT",
+        desc: "ฟังก์ชันคณิตศาสตร์พื้นฐาน",
+        params: [
+          { key: "number", label: "Number", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=SQRT(${quoteIfNeeded(p.number)})`,
+        example: "=SQRT(A2)"
+      },
+"ABS": {
+        title: "ABS",
+        desc: "ฟังก์ชันคณิตศาสตร์พื้นฐาน",
+        params: [
+          { key: "number", label: "Number", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=ABS(${quoteIfNeeded(p.number)})`,
+        example: "=ABS(A2)"
+      },
+"SIGN": {
+        title: "SIGN",
+        desc: "ฟังก์ชันคณิตศาสตร์พื้นฐาน",
+        params: [
+          { key: "number", label: "Number", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=SIGN(${quoteIfNeeded(p.number)})`,
+        example: "=SIGN(A2)"
+      },
+"RAND": {
+        title: "RAND",
+        desc: "สุ่มตัวเลขระหว่าง 0-1",
+        params: [],
+        build: (p) => `=RAND()`,
+        example: "=RAND()"
+      },
+"RANDBETWEEN": {
+        title: "RANDBETWEEN",
+        desc: "สุ่มตัวเลขระหว่างช่วงที่กำหนด",
+        params: [
+          { key: "bottom", label: "Bottom", placeholder: "1", type: "number" },
+          { key: "top", label: "Top", placeholder: "100", type: "number" }
+        ],
+        build: (p) => `=RANDBETWEEN(${quoteIfNeeded(p.bottom)},${quoteIfNeeded(p.top)})`,
+        example: "=RANDBETWEEN(1,10)"
+      },
+"RANDARRAY": {
+        title: "RANDARRAY",
+        desc: "สร้างตัวเลขสุ่ม",
+        params: [
+          { key: "rows", label: "Rows", placeholder: "1", type: "number", optional: true },
+          { key: "cols", label: "Cols", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=RANDARRAY(${quoteIfNeeded(p.rows)},${quoteIfNeeded(p.cols)})`,
+        example: "=RANDARRAY(1,1)"
+      },
+"NOW": {
+        title: "NOW",
+        desc: "วันที่และเวลาปัจจุบัน",
+        params: [],
+        build: (p) => `=NOW()`,
+        example: "=NOW()"
+      },
+"TODAY": {
+        title: "TODAY",
+        desc: "วันที่ปัจจุบัน",
+        params: [],
+        build: (p) => `=TODAY()`,
+        example: "=TODAY()"
+      },
+"DATE": {
+        title: "DATE",
+        desc: "สร้างวันที่จากปี-เดือน-วัน",
+        params: [
+          { key: "year", label: "Year", placeholder: "2023", type: "number" },
+          { key: "month", label: "Month", placeholder: "1", type: "number" },
+          { key: "day", label: "Day", placeholder: "1", type: "number" }
+        ],
+        build: (p) => `=DATE(${quoteIfNeeded(p.year)},${quoteIfNeeded(p.month)},${quoteIfNeeded(p.day)})`,
+        example: "=DATE(2023,1,1)"
+      },
+"TIME": {
+        title: "TIME",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=TIME(${quoteIfNeeded(p.arg1)})`,
+        example: "=TIME(A2)"
+      },
+"DATEVALUE": {
+        title: "DATEVALUE",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=DATEVALUE(${quoteIfNeeded(p.arg1)})`,
+        example: "=DATEVALUE(A2)"
+      },
+"TIMEVALUE": {
+        title: "TIMEVALUE",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=TIMEVALUE(${quoteIfNeeded(p.arg1)})`,
+        example: "=TIMEVALUE(A2)"
+      },
+"YEAR": {
+        title: "YEAR",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=YEAR(${quoteIfNeeded(p.arg1)})`,
+        example: "=YEAR(A2)"
+      },
+"MONTH": {
+        title: "MONTH",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=MONTH(${quoteIfNeeded(p.arg1)})`,
+        example: "=MONTH(A2)"
+      },
+"DAY": {
+        title: "DAY",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=DAY(${quoteIfNeeded(p.arg1)})`,
+        example: "=DAY(A2)"
+      },
+"HOUR": {
+        title: "HOUR",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=HOUR(${quoteIfNeeded(p.arg1)})`,
+        example: "=HOUR(A2)"
+      },
+"MINUTE": {
+        title: "MINUTE",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=MINUTE(${quoteIfNeeded(p.arg1)})`,
+        example: "=MINUTE(A2)"
+      },
+"SECOND": {
+        title: "SECOND",
+        desc: "ฟังก์ชันวันที่/เวลา",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=SECOND(${quoteIfNeeded(p.arg1)})`,
+        example: "=SECOND(A2)"
+      },
+"TEXT": {
+        title: "TEXT",
+        desc: "แปลงตัวเลขเป็นข้อความตามรูปแบบ",
+        params: [
+          { key: "text", label: "Text or cell", placeholder: "A2", type: "text" },
+          { key: "format_or_delim", label: "Format or delimiter", placeholder: '"0.00" or ", "', type: "text", optional: true }
+        ],
+        build: (p) => `=TEXT(${quoteIfNeeded(p.text)},${quoteIfNeeded(p.format_or_delim)})`,
+        example: "=TEXT(A2)"
+      },
+"VALUE": {
+        title: "VALUE",
+        desc: "ฟังก์ชันจัดการข้อความ",
+        params: [
+          { key: "text", label: "Text or cell", placeholder: "A2", type: "text" }
+        ],
+        build: (p) => `=VALUE(${quoteIfNeeded(p.text)})`,
+        example: "=VALUE(A2)"
+      },
+"LEN": {
+        title: "LEN",
+        desc: "LEN (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=LEN(${quoteIfNeeded(p.arg1)})`,
+        example: "=LEN(A2)"
+      },
+"TRIM": {
+        title: "TRIM",
+        desc: "TRIM (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=TRIM(${quoteIfNeeded(p.arg1)})`,
+        example: "=TRIM(A2)"
+      },
+"CLEAN": {
+        title: "CLEAN",
+        desc: "CLEAN (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=CLEAN(${quoteIfNeeded(p.arg1)})`,
+        example: "=CLEAN(A2)"
+      },
+"UPPER": {
+        title: "UPPER",
+        desc: "UPPER (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=UPPER(${quoteIfNeeded(p.arg1)})`,
+        example: "=UPPER(A2)"
+      },
+"LOWER": {
+        title: "LOWER",
+        desc: "LOWER (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=LOWER(${quoteIfNeeded(p.arg1)})`,
+        example: "=LOWER(A2)"
+      },
+"PROPER": {
+        title: "PROPER",
+        desc: "PROPER (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=PROPER(${quoteIfNeeded(p.arg1)})`,
+        example: "=PROPER(A2)"
+      },
+"REPLACE": {
+        title: "REPLACE",
+        desc: "ค้นหาหรือแทนที่ข้อความ",
+        params: [
+          { key: "find_text", label: "Find text", placeholder: '"a"', type: "text" },
+          { key: "within_text", label: "Within text/cell", placeholder: "A2", type: "text" },
+          { key: "start_num", label: "Start position (optional)", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=REPLACE(${quoteIfNeeded(p.find_text)},${quoteIfNeeded(p.within_text)},${quoteIfNeeded(p.start_num)})`,
+        example: '=FIND("a",A2)'
+      },
+"REPT": {
+        title: "REPT",
+        desc: "REPT (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=REPT(${quoteIfNeeded(p.arg1)})`,
+        example: "=REPT(A2)"
+      },
+"FIND": {
+        title: "FIND",
+        desc: "ค้นหาหรือแทนที่ข้อความ",
+        params: [
+          { key: "find_text", label: "Find text", placeholder: '"a"', type: "text" },
+          { key: "within_text", label: "Within text/cell", placeholder: "A2", type: "text" },
+          { key: "start_num", label: "Start position (optional)", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=FIND(${quoteIfNeeded(p.find_text)},${quoteIfNeeded(p.within_text)},${quoteIfNeeded(p.start_num)})`,
+        example: '=FIND("a",A2)'
+      },
+"SEARCH": {
+        title: "SEARCH",
+        desc: "ค้นหาหรือแทนที่ข้อความ",
+        params: [
+          { key: "find_text", label: "Find text", placeholder: '"a"', type: "text" },
+          { key: "within_text", label: "Within text/cell", placeholder: "A2", type: "text" },
+          { key: "start_num", label: "Start position (optional)", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=SEARCH(${quoteIfNeeded(p.find_text)},${quoteIfNeeded(p.within_text)},${quoteIfNeeded(p.start_num)})`,
+        example: '=FIND("a",A2)'
+      },
+"EXACT": {
+        title: "EXACT",
+        desc: "EXACT (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=EXACT(${quoteIfNeeded(p.arg1)})`,
+        example: "=EXACT(A2)"
+      },
+"CONCATENATE": {
+        title: "CONCATENATE",
+        desc: "เชื่อมข้อความ",
+        params: [
+          { key: "part1", label: "Part 1", placeholder: 'A2 or "Mr."', type: "text" },
+          { key: "part2", label: "Part 2 (optional)", placeholder: 'B2 or "Smith"', type: "text", optional: true },
+          { key: "delimiter", label: "Delimiter (optional)", placeholder: '" "', type: "text", optional: true }
+        ],
+        build: (p) => `=CONCATENATE(${quoteIfNeeded(p.part1)},${quoteIfNeeded(p.part2)},${quoteIfNeeded(p.delimiter)})`,
+        example: '=A2 & " ' & "B2"
+      },
+"JOIN": {
+        title: "JOIN",
+        desc: "เชื่อมข้อความ",
+        params: [
+          { key: "part1", label: "Part 1", placeholder: 'A2 or "Mr."', type: "text" },
+          { key: "part2", label: "Part 2 (optional)", placeholder: 'B2 or "Smith"', type: "text", optional: true },
+          { key: "delimiter", label: "Delimiter (optional)", placeholder: '" "', type: "text", optional: true }
+        ],
+        build: (p) => `=JOIN(${quoteIfNeeded(p.part1)},${quoteIfNeeded(p.part2)},${quoteIfNeeded(p.delimiter)})`,
+        example: '=A2 & " ' & "B2"
+      },
+"SPLIT": {
+        title: "SPLIT",
+        desc: "เชื่อมข้อความ",
+        params: [
+          { key: "part1", label: "Part 1", placeholder: 'A2 or "Mr."', type: "text" },
+          { key: "part2", label: "Part 2 (optional)", placeholder: 'B2 or "Smith"', type: "text", optional: true },
+          { key: "delimiter", label: "Delimiter (optional)", placeholder: '" "', type: "text", optional: true }
+        ],
+        build: (p) => `=SPLIT(${quoteIfNeeded(p.part1)},${quoteIfNeeded(p.part2)},${quoteIfNeeded(p.delimiter)})`,
+        example: '=A2 & " ' & "B2"
+      },
+"UNICHAR": {
+        title: "UNICHAR",
+        desc: "UNICHAR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=UNICHAR(${quoteIfNeeded(p.arg1)})`,
+        example: "=UNICHAR(A2)"
+      },
+"UNICODE": {
+        title: "UNICODE",
+        desc: "UNICODE (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=UNICODE(${quoteIfNeeded(p.arg1)})`,
+        example: "=UNICODE(A2)"
+      },
+"CHAR": {
+        title: "CHAR",
+        desc: "CHAR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=CHAR(${quoteIfNeeded(p.arg1)})`,
+        example: "=CHAR(A2)"
+      },
+"CODE": {
+        title: "CODE",
+        desc: "CODE (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=CODE(${quoteIfNeeded(p.arg1)})`,
+        example: "=CODE(A2)"
+      },
+"LENB": {
+        title: "LENB",
+        desc: "LENB (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=LENB(${quoteIfNeeded(p.arg1)})`,
+        example: "=LENB(A2)"
+      },
+"FLOOR_MATH": {
+        title: "FLOOR.MATH",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=FLOOR.MATH(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=FLOOR.MATH(A2,0)"
+      },
+"CEILING_MATH": {
+        title: "CEILING.MATH",
+        desc: "ปัด/ตัดทศนิยม",
+        params: [
+          { key: "number", label: "Number or cell", placeholder: "A2", type: "text" },
+          { key: "num_digits", label: "Digits (เช่น 0 หรือ 2)", placeholder: "0", type: "number", optional: true }
+        ],
+        build: (p) => `=CEILING.MATH(${quoteIfNeeded(p.number)},${quoteIfNeeded(p.num_digits)})`,
+        example: "=CEILING.MATH(A2,0)"
+      },
+"HLOOKUP": {
+        title: "HLOOKUP",
+        desc: "ฟังก์ชันค้นหา/lookup",
+        params: [
+          { key: "lookup_value", label: "Lookup value", placeholder: "A2", type: "text" },
+          { key: "lookup_array", label: "Lookup array", placeholder: "B2:B100", type: "text" },
+          { key: "match_type", label: "Match type", placeholder: "", type: "select", options: [{v:"0",t:"Exact (0)"},{v:"1",t:"Approx (1)"}] }
+        ],
+        build: (p) => `=HLOOKUP(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.lookup_array)},${quoteIfNeeded(p.match_type)})`,
+        example: "=HLOOKUP(A2,B2:B100,0)"
+      },
+"XLOOKUP": {
+        title: "XLOOKUP",
+        desc: "ค้นหาแบบยืดหยุ่น รองรับ left/right และกำหนดค่าเมื่อไม่พบ",
+        params: [
+          { key: "lookup_value", label: "Lookup value", placeholder: "A2", type: "text" },
+          { key: "lookup_array", label: "Lookup array", placeholder: "B2:B100", type: "text" },
+          { key: "return_array", label: "Return array", placeholder: "C2:C100", type: "text" },
+          { key: "if_not_found", label: "If not found (optional)", placeholder: '"Not found"', type: "text", optional: true }
+        ],
+        build: (p) => `=XLOOKUP(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.lookup_array)},${quoteIfNeeded(p.return_array)},${quoteIfNeeded(p.if_not_found)})`,
+        example: '=XLOOKUP(A2,B2:B100,C2:C100,"Not found")'
+      },
+"MATCH": {
+        title: "MATCH",
+        desc: "คืนตำแหน่งในช่วงที่ตรงกับค่า",
+        params: [
+          { key: "lookup_value", label: "Lookup value", placeholder: "A2", type: "text" },
+          { key: "lookup_array", label: "Lookup array", placeholder: "B2:B100", type: "text" },
+          { key: "match_type", label: "Match type", placeholder: "", type: "select", options: [{v:"0",t:"Exact (0)"},{v:"1",t:"Approx (1)"}] }
+        ],
+        build: (p) => `=MATCH(${quoteIfNeeded(p.lookup_value)},${quoteIfNeeded(p.lookup_array)},${quoteIfNeeded(p.match_type)})`,
+        example: "=MATCH(A2,B2:B100,0)"
+      },
+"INDEX": {
+        title: "INDEX",
+        desc: "คืนค่าจากช่วงที่ระบุโดยแถว/คอลัมน์",
+        params: [
+          { key: "array", label: "Array (C2:C100)", placeholder: "C2:C100", type: "text" },
+          { key: "row_num", label: "Row number", placeholder: "1", type: "number" },
+          { key: "col_num", label: "Col number (optional)", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=INDEX(${quoteIfNeeded(p.array)},${quoteIfNeeded(p.row_num)},${quoteIfNeeded(p.col_num)})`,
+        example: "=INDEX(C2:C100,1)"
+      },
+"INDIRECT": {
+        title: "INDIRECT",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=INDIRECT(${quoteIfNeeded(p.arg)})`,
+        example: "=INDIRECT(A1)"
+      },
+"ADDRESS": {
+        title: "ADDRESS",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=ADDRESS(${quoteIfNeeded(p.arg)})`,
+        example: "=ADDRESS(A1)"
+      },
+"ROW": {
+        title: "ROW",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=ROW(${quoteIfNeeded(p.arg)})`,
+        example: "=ROW(A1)"
+      },
+"COLUMN": {
+        title: "COLUMN",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=COLUMN(${quoteIfNeeded(p.arg)})`,
+        example: "=COLUMN(A1)"
+      },
+"ROWS": {
+        title: "ROWS",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=ROWS(${quoteIfNeeded(p.arg)})`,
+        example: "=ROWS(A1)"
+      },
+"COLUMNS": {
+        title: "COLUMNS",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=COLUMNS(${quoteIfNeeded(p.arg)})`,
+        example: "=COLUMNS(A1)"
+      },
+"OFFSET": {
+        title: "OFFSET",
+        desc: "ฟังก์ชันช่วง/array",
+        params: [
+          { key: "range", label: "Reference (A1)", placeholder: "A1", type: "text" },
+          { key: "rows", label: "Rows", placeholder: "1", type: "number", optional: true },
+          { key: "cols", label: "Cols", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=OFFSET(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.rows)},${quoteIfNeeded(p.cols)})`,
+        example: "=OFFSET(A1,1,1)"
+      },
+"TRANSPOSE": {
+        title: "TRANSPOSE",
+        desc: "ฟังก์ชันช่วง/array",
+        params: [
+          { key: "range", label: "Reference (A1)", placeholder: "A1", type: "text" },
+          { key: "rows", label: "Rows", placeholder: "1", type: "number", optional: true },
+          { key: "cols", label: "Cols", placeholder: "1", type: "number", optional: true }
+        ],
+        build: (p) => `=TRANSPOSE(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.rows)},${quoteIfNeeded(p.cols)})`,
+        example: "=TRANSPOSE(A1,1,1)"
+      },
+"CHOOSE": {
+        title: "CHOOSE",
+        desc: "ฟังก์ชันตรรกะ/เลือกค่า",
+        params: [
+          { key: "index", label: "Index number", placeholder: "1", type: "number" },
+          { key: "value1", label: "Value 1", placeholder: '"Red"', type: "text", optional: true }
+        ],
+        build: (p) => `=CHOOSE(${quoteIfNeeded(p.index)},${quoteIfNeeded(p.value1)})`,
+        example: '=CHOOSE(1,"Red","Blue")'
+      },
+"SWITCH": {
+        title: "SWITCH",
+        desc: "ฟังก์ชันตรรกะ/เลือกค่า",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=SWITCH(${quoteIfNeeded(p.arg1)})`,
+        example: "=SWITCH(A2)"
+      },
+"IFS": {
+        title: "IFS",
+        desc: "ตรรกะหลายเงื่อนไข",
+        params: [
+          { key: "condition", label: "Condition", placeholder: "A2>10", type: "text" },
+          { key: "value_if_true", label: "Value if true", placeholder: "1", type: "text", optional: true },
+          { key: "value_if_false", label: "Value if false", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=IFS(${quoteIfNeeded(p.condition)},${quoteIfNeeded(p.value_if_true)},${quoteIfNeeded(p.value_if_false)})`,
+        example: "=IF(A2>10,1,0)"
+      },
+"IFERROR": {
+        title: "IFERROR",
+        desc: "ฟังก์ชันตรรกะ/เลือกค่า",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=IFERROR(${quoteIfNeeded(p.arg1)})`,
+        example: "=IFERROR(A2)"
+      },
+"IFNA": {
+        title: "IFNA",
+        desc: "ฟังก์ชันตรรกะ/เลือกค่า",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=IFNA(${quoteIfNeeded(p.arg1)})`,
+        example: "=IFNA(A2)"
+      },
+"AND": {
+        title: "AND",
+        desc: "ตรรกะ AND",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=AND(${quoteIfNeeded(p.arg1)})`,
+        example: "=AND(A2)"
+      },
+"OR": {
+        title: "OR",
+        desc: "ตรรกะ OR",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=OR(${quoteIfNeeded(p.arg1)})`,
+        example: "=OR(A2)"
+      },
+"NOT": {
+        title: "NOT",
+        desc: "ตรรกะ NOT",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "TRUE or FALSE", type: "text" }
+        ],
+        build: (p) => `=NOT(${quoteIfNeeded(p.arg1)})`,
+        example: "=NOT(A2)"
+      },
+"ISBLANK": {
+        title: "ISBLANK",
+        desc: "ISBLANK (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISBLANK(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISBLANK(A2)"
+      },
+"ISNUMBER": {
+        title: "ISNUMBER",
+        desc: "ISNUMBER (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISNUMBER(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISNUMBER(A2)"
+      },
+"ISTEXT": {
+        title: "ISTEXT",
+        desc: "ISTEXT (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISTEXT(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISTEXT(A2)"
+      },
+"ISERROR": {
+        title: "ISERROR",
+        desc: "ISERROR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISERROR(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISERROR(A2)"
+      },
+"ISERR": {
+        title: "ISERR",
+        desc: "ISERR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISERR(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISERR(A2)"
+      },
+"ISLOGICAL": {
+        title: "ISLOGICAL",
+        desc: "ISLOGICAL (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISLOGICAL(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISLOGICAL(A2)"
+      },
+"ISNA": {
+        title: "ISNA",
+        desc: "ISNA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ISNA(${quoteIfNeeded(p.arg1)})`,
+        example: "=ISNA(A2)"
+      },
+"NA": {
+        title: "NA",
+        desc: "NA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=NA(${quoteIfNeeded(p.arg1)})`,
+        example: "=NA(A2)"
+      },
+"ERROR_TYPE": {
+        title: "ERROR.TYPE",
+        desc: "ERROR.TYPE (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=ERROR.TYPE(${quoteIfNeeded(p.arg1)})`,
+        example: "=ERROR.TYPE(A2)"
+      },
+"T": {
+        title: "T",
+        desc: "T (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=T(${quoteIfNeeded(p.arg1)})`,
+        example: "=T(A2)"
+      },
+"N": {
+        title: "N",
+        desc: "N (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=N(${quoteIfNeeded(p.arg1)})`,
+        example: "=N(A2)"
+      },
+"FORMULATEXT": {
+        title: "FORMULATEXT",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=FORMULATEXT(${quoteIfNeeded(p.arg)})`,
+        example: "=FORMULATEXT(A1)"
+      },
+"CELL": {
+        title: "CELL",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=CELL(${quoteIfNeeded(p.arg)})`,
+        example: "=CELL(A1)"
+      },
+"INFO": {
+        title: "INFO",
+        desc: "INFO (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=INFO(${quoteIfNeeded(p.arg1)})`,
+        example: "=INFO(A2)"
+      },
+"GETPIVOTDATA": {
+        title: "GETPIVOTDATA",
+        desc: "GETPIVOTDATA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=GETPIVOTDATA(${quoteIfNeeded(p.arg1)})`,
+        example: "=GETPIVOTDATA(A2)"
+      },
+"HYPERLINK": {
+        title: "HYPERLINK",
+        desc: "HYPERLINK (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=HYPERLINK(${quoteIfNeeded(p.arg1)})`,
+        example: "=HYPERLINK(A2)"
+      },
+"SHEET": {
+        title: "SHEET",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=SHEET(${quoteIfNeeded(p.arg)})`,
+        example: "=SHEET(A1)"
+      },
+"SHEETS": {
+        title: "SHEETS",
+        desc: "ฟังก์ชันการอ้างอิง/เซลล์",
+        params: [
+          { key: "arg", label: 'Argument (เช่น "A1" หรือ A2)', placeholder: "A1", type: "text" }
+        ],
+        build: (p) => `=SHEETS(${quoteIfNeeded(p.arg)})`,
+        example: "=SHEETS(A1)"
+      },
+"SUMSQ": {
+        title: "SUMSQ",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUMSQ(${quoteIfNeeded(p.range)})`,
+        example: "=SUMSQ(A2:A10)"
+      },
+"SUMX2MY2": {
+        title: "SUMX2MY2",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUMX2MY2(${quoteIfNeeded(p.range)})`,
+        example: "=SUMX2MY2(A2:A10)"
+      },
+"SUMX2PY2": {
+        title: "SUMX2PY2",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUMX2PY2(${quoteIfNeeded(p.range)})`,
+        example: "=SUMX2PY2(A2:A10)"
+      },
+"SUMXMY2": {
+        title: "SUMXMY2",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=SUMXMY2(${quoteIfNeeded(p.range)})`,
+        example: "=SUMXMY2(A2:A10)"
+      },
+"PRODUCT": {
+        title: "PRODUCT",
+        desc: "รวมค่าจากช่วงเซลล์",
+        params: [
+          { key: "range", label: "Range (เช่น A2:A10)", placeholder: "A2:A10", type: "text" }
+        ],
+        build: (p) => `=PRODUCT(${quoteIfNeeded(p.range)})`,
+        example: "=PRODUCT(A2:A10)"
+      },
+"GEOMEAN": {
+        title: "GEOMEAN",
+        desc: "GEOMEAN (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=GEOMEAN(${quoteIfNeeded(p.arg1)})`,
+        example: "=GEOMEAN(A2)"
+      },
+"HARMEAN": {
+        title: "HARMEAN",
+        desc: "HARMEAN (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=HARMEAN(${quoteIfNeeded(p.arg1)})`,
+        example: "=HARMEAN(A2)"
+      },
+"AVERAGEA": {
+        title: "AVERAGEA",
+        desc: "AVERAGEA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=AVERAGEA(${quoteIfNeeded(p.arg1)})`,
+        example: "=AVERAGEA(A2)"
+      },
+"STDEV": {
+        title: "STDEV",
+        desc: "STDEV (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=STDEV(${quoteIfNeeded(p.arg1)})`,
+        example: "=STDEV(A2)"
+      },
+"STDEVA": {
+        title: "STDEVA",
+        desc: "STDEVA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=STDEVA(${quoteIfNeeded(p.arg1)})`,
+        example: "=STDEVA(A2)"
+      },
+"VAR": {
+        title: "VAR",
+        desc: "VAR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=VAR(${quoteIfNeeded(p.arg1)})`,
+        example: "=VAR(A2)"
+      },
+"VARA": {
+        title: "VARA",
+        desc: "VARA (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=VARA(${quoteIfNeeded(p.arg1)})`,
+        example: "=VARA(A2)"
+      },
+"CORREL": {
+        title: "CORREL",
+        desc: "CORREL (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=CORREL(${quoteIfNeeded(p.arg1)})`,
+        example: "=CORREL(A2)"
+      },
+"COVARIANCE_P": {
+        title: "COVARIANCE.P",
+        desc: "COVARIANCE.P (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=COVARIANCE.P(${quoteIfNeeded(p.arg1)})`,
+        example: "=COVARIANCE.P(A2)"
+      },
+"COVARIANCE_S": {
+        title: "COVARIANCE.S",
+        desc: "COVARIANCE.S (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=COVARIANCE.S(${quoteIfNeeded(p.arg1)})`,
+        example: "=COVARIANCE.S(A2)"
+      },
+"SLOPE": {
+        title: "SLOPE",
+        desc: "SLOPE (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=SLOPE(${quoteIfNeeded(p.arg1)})`,
+        example: "=SLOPE(A2)"
+      },
+"INTERCEPT": {
+        title: "INTERCEPT",
+        desc: "INTERCEPT (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=INTERCEPT(${quoteIfNeeded(p.arg1)})`,
+        example: "=INTERCEPT(A2)"
+      },
+"FORECAST_LINEAR": {
+        title: "FORECAST.LINEAR",
+        desc: "FORECAST.LINEAR (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=FORECAST.LINEAR(${quoteIfNeeded(p.arg1)})`,
+        example: "=FORECAST.LINEAR(A2)"
+      },
+"LINEST": {
+        title: "LINEST",
+        desc: "LINEST (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=LINEST(${quoteIfNeeded(p.arg1)})`,
+        example: "=LINEST(A2)"
+      },
+"TREND": {
+        title: "TREND",
+        desc: "TREND (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=TREND(${quoteIfNeeded(p.arg1)})`,
+        example: "=TREND(A2)"
+      },
+"LOGEST": {
+        title: "LOGEST",
+        desc: "LOGEST (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=LOGEST(${quoteIfNeeded(p.arg1)})`,
+        example: "=LOGEST(A2)"
+      },
+"POISSON_DIST": {
+        title: "POISSON.DIST",
+        desc: "ฟังก์ชันสถิติ/ความน่าจะเป็น",
+        params: [
+          { key: "x", label: "x or value", placeholder: "A2", type: "text" },
+          { key: "mean_or_params", label: "mean or params (if needed)", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=POISSON.DIST(${quoteIfNeeded(p.x)},${quoteIfNeeded(p.mean_or_params)})`,
+        example: "=POISSON.DIST(A2)"
+      },
+"NORM_DIST": {
+        title: "NORM.DIST",
+        desc: "ฟังก์ชันสถิติ/ความน่าจะเป็น",
+        params: [
+          { key: "x", label: "x or value", placeholder: "A2", type: "text" },
+          { key: "mean_or_params", label: "mean or params (if needed)", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=NORM.DIST(${quoteIfNeeded(p.x)},${quoteIfNeeded(p.mean_or_params)})`,
+        example: "=NORM.DIST(A2)"
+      },
+"NORM_S_DIST": {
+        title: "NORM.S.DIST",
+        desc: "ฟังก์ชันสถิติ/ความน่าจะเป็น",
+        params: [
+          { key: "x", label: "x or value", placeholder: "A2", type: "text" },
+          { key: "mean_or_params", label: "mean or params (if needed)", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=NORM.S.DIST(${quoteIfNeeded(p.x)},${quoteIfNeeded(p.mean_or_params)})`,
+        example: "=NORM.S.DIST(A2)"
+      },
+"NORMINV": {
+        title: "NORMINV",
+        desc: "ฟังก์ชันสถิติ/ความน่าจะเป็น",
+        params: [
+          { key: "x", label: "x or value", placeholder: "A2", type: "text" },
+          { key: "mean_or_params", label: "mean or params (if needed)", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=NORMINV(${quoteIfNeeded(p.x)},${quoteIfNeeded(p.mean_or_params)})`,
+        example: "=NORMINV(A2)"
+      },
+"NORM_S_INV": {
+        title: "NORM.S.INV",
+        desc: "ฟังก์ชันสถิติ/ความน่าจะเป็น",
+        params: [
+          { key: "x", label: "x or value", placeholder: "A2", type: "text" },
+          { key: "mean_or_params", label: "mean or params (if needed)", placeholder: "0", type: "text", optional: true }
+        ],
+        build: (p) => `=NORM.S.INV(${quoteIfNeeded(p.x)},${quoteIfNeeded(p.mean_or_params)})`,
+        example: "=NORM.S.INV(A2)"
+      },
+"PERCENTILE_EXC": {
+        title: "PERCENTILE.EXC",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" },
+          { key: "k", label: "k (เช่น 1 หรือ 2)", placeholder: "1", type: "number" }
+        ],
+        build: (p) => `=PERCENTILE.EXC(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.k)})`,
+        example: "=PERCENTILE.EXC(A2:A100,1)"
+      },
+"PERCENTILE_INC": {
+        title: "PERCENTILE.INC",
+        desc: "หาค่าที่ต้องการจากช่วง",
+        params: [
+          { key: "range", label: "Range", placeholder: "A2:A100", type: "text" },
+          { key: "k", label: "k (เช่น 1 หรือ 2)", placeholder: "1", type: "number" }
+        ],
+        build: (p) => `=PERCENTILE.INC(${quoteIfNeeded(p.range)},${quoteIfNeeded(p.k)})`,
+        example: "=PERCENTILE.INC(A2:A100,1)"
+      },
+"QUARTILE_EXC": {
+        title: "QUARTILE.EXC",
+        desc: "QUARTILE.EXC (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=QUARTILE.EXC(${quoteIfNeeded(p.arg1)})`,
+        example: "=QUARTILE.EXC(A2)"
+      },
+"QUARTILE_INC": {
+        title: "QUARTILE.INC",
+        desc: "QUARTILE.INC (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=QUARTILE.INC(${quoteIfNeeded(p.arg1)})`,
+        example: "=QUARTILE.INC(A2)"
+      },
+"PERCENTRANK_EXC": {
+        title: "PERCENTRANK.EXC",
+        desc: "PERCENTRANK.EXC (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=PERCENTRANK.EXC(${quoteIfNeeded(p.arg1)})`,
+        example: "=PERCENTRANK.EXC(A2)"
+      },
+"PERCENTRANK_INC": {
+        title: "PERCENTRANK.INC",
+        desc: "PERCENTRANK.INC (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=PERCENTRANK.INC(${quoteIfNeeded(p.arg1)})`,
+        example: "=PERCENTRANK.INC(A2)"
+      },
+"RANK_EQ": {
+        title: "RANK.EQ",
+        desc: "RANK.EQ (ฟังก์ชัน Excel)",
+        params: [
+          { key: "arg1", label: "Argument 1", placeholder: "A2 or value", type: "text", optional: true }
+        ],
+        build: (p) => `=RANK.EQ(${quoteIfNeeded(p.arg1)})`,
+        example: "=RANK.EQ(A2)"
+      }};
 
     /********************
      * App state
