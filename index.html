@@ -94,7 +94,7 @@
       padding: 10px 14px; border-radius: 10px; border: 1px solid transparent;
       background: color-mix(in oklab, var(--card) 85%, #0000);
       color: var(--text); cursor: pointer;
-      transition: .2s ease transform, .2s ease box-shadow, .2s ease background;
+      transition: .2s ease transform, .2s ease box-shadow, .2s ease background, .2s ease color;
     }
     .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow) }
     .btn.ghost { background: transparent; border-color: color-mix(in oklab, var(--muted) 30%, transparent) }
@@ -122,25 +122,23 @@
       padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 700;
       border: 1px solid color-mix(in oklab, var(--muted) 35%, transparent);
       background: color-mix(in oklab, var(--ui) 85%, transparent);
+      color: var(--text);
+      transition: background .25s ease, box-shadow .25s ease, filter .2s ease, color .2s ease;
     }
-    /* ทำให้ปุ่มปกติสว่างขึ้น */
-.tab {
-  color: var(--text);
-  background: color-mix(in oklab, var(--card) 95%, var(--accent) 5%);
-  font-weight: 600;
-}
-
-/* เพิ่ม hover ให้ดูเด่นขึ้น */
-.tab:hover {
-  background: color-mix(in oklab, var(--accent) 20%, var(--card) 80%);
-  color: #fff; /* ขาวชัดเจน */
-}
+    /* ปรับให้เห็นชัดขึ้นตอนยังไม่ได้คลิก */
+    :root:not(.light) .tab { color: #f0f6ff }
+    .tab:hover {
+      background: color-mix(in oklab, var(--accent) 20%, var(--card) 80%);
+      color: #fff;
+    }
     .tab.active {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #001018; /* ทำให้ตัวอักษรเข้มขึ้น */
-  font-weight: 700;
-  box-shadow: 0 0 10px var(--accent); /* เพิ่มเงาสว่าง */
-}
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #001018;
+      font-weight: 700;
+      box-shadow: 0 0 10px color-mix(in oklab, var(--accent) 40%, transparent);
+      border-color: transparent;
+    }
+    section[hidden] { display: none !important }
 
     /* -----------------------------
        Cards / Panels / Grid
@@ -157,11 +155,7 @@
     /* -----------------------------
        Forms (Responsive Grid)
     ------------------------------*/
-    .form-grid {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(12, 1fr);
-    }
+    .form-grid { display: grid; gap: 12px; grid-template-columns: repeat(12, 1fr) }
     .fg-12 { grid-column: span 12 }
     .fg-6  { grid-column: span 6 }
     .fg-4  { grid-column: span 4 }
@@ -178,6 +172,17 @@
       border: 1px solid color-mix(in oklab, var(--muted) 30%, transparent);
       background: var(--card); color: var(--text);
     }
+
+    /* -----------------------------
+       Quiz styles (ใหม่)
+    ------------------------------*/
+    .q-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius: 999px; font-size: .85rem; border:1px solid transparent }
+    .q-badge.ok { color: #00140a; background: color-mix(in oklab, var(--ok) 80%, #0000); border-color: color-mix(in oklab, var(--ok) 40%, transparent) }
+    .q-badge.bad { color: #2b0000; background: color-mix(in oklab, var(--danger) 80%, #0000); border-color: color-mix(in oklab, var(--danger) 40%, transparent) }
+    .q-explain { margin-top: 6px; color: var(--muted) }
+    .q-summary { display:flex; flex-wrap: wrap; gap:10px; align-items:center }
+    .q-summary .stat { padding:6px 10px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 30%, transparent) }
+    .q-disabled { opacity:.85; pointer-events:none }
 
     /* -----------------------------
        Table (Datasets)
@@ -320,7 +325,10 @@
             <button class="btn accent" id="startQuiz">เริ่มควิซ</button>
           </div>
         </div>
+
         <div id="quizArea" style="margin-top:12px"></div>
+        <!-- กล่องสรุปคะแนนจะแสดงที่นี่ -->
+        <div id="quizSummary" class="panel" style="display:none; margin-top:12px"></div>
       </div>
     </section>
 
@@ -745,65 +753,154 @@
       }
     });
 
-    // Quiz
+    // ==============================
+    // Quiz (อัปเกรด: แสดงถูก/ผิดรายข้อ + เปอร์เซ็นต์)
+    // ==============================
     const quizArea = $('#quizArea'); const quizLevel = $('#quizLevel');
+    const quizSummary = $('#quizSummary');
+    let quizStartTime = 0;
+
     $('#startQuiz').onclick = ()=> startQuiz();
     const pick = (arr,n)=> arr.sort(()=>Math.random()-0.5).slice(0,n);
     const QUESTIONS_POOL = [
-      ()=>({type:'mc', q:'ต้องการรวมยอดขายที่ Region = "East" และ Product = "Apple" ควรใช้ฟังก์ชันใด?', choices:['SUMIF','SUMIFS','FILTER','XLOOKUP'], answer: 'SUMIFS'}),
-      ()=>({type:'mc', q:'ต้องการค้นหาชื่อจากรหัส SKU โดยมีคอลัมน์ผลลัพธ์อยู่ซ้ายของรหัส ใช้สูตรใดเหมาะสุด?', choices:['VLOOKUP','INDEX + MATCH','TEXTJOIN','COUNTIFS'], answer: 'INDEX + MATCH'}),
-      ()=>({type:'fill', q:'เติมรูปแบบฟังก์ชันให้ถูกต้อง: XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])', answerPattern:/^\s*XLOOKUP\s*\(\s*lookup_value\s*,\s*lookup_array\s*,\s*return_array/i}),
-      ()=>({type:'read', q:'สูตรนี้ทำอะไร: =TEXTJOIN("-", TRUE, A2:C2)', answer: 'เชื่อมค่าในช่วง A2:C2 โดยใช้ "-" และข้ามช่องว่าง'}),
-      ()=>({type:'mc', q:'ต้องการรายการ Region ที่ไม่ซ้ำและเรียงจาก A→Z ใช้อะไร?', choices:['UNIQUE','SORT','SORT(UNIQUE(...))','FILTER'], answer: 'SORT(UNIQUE(...))'}),
-      ()=>({type:'mc', q:'ต้องการกรองแถวที่ยอดขาย > 1000 และ Region = "West" แบบ Dynamic Array', choices:['FILTER','SUMIFS','COUNTIF','IF'], answer: 'FILTER'}),
-      ()=>({type:'mc', q:'ต้องการคำนวณปลายเดือนที่แล้ว ควรใช้?', choices:['EOMONTH(TODAY(), -1)','TODAY()-30','DATE(YEAR(TODAY()),MONTH(TODAY()),0)','TEXTJOIN'], answer: 'EOMONTH(TODAY(), -1)'}),
-      ()=>({type:'read', q:'สูตรนี้ทำอะไร: =IF(AND(A2>0, B2<100),"OK","CHECK")', answer: 'ถ้า A2 > 0 และ B2 < 100 ให้ "OK" ไม่เช่นนั้นให้ "CHECK"'})
+      ()=>({type:'mc', q:'ต้องการรวมยอดขายที่ Region = "East" และ Product = "Apple" ควรใช้ฟังก์ชันใด?', choices:['SUMIF','SUMIFS','FILTER','XLOOKUP'], answer: 'SUMIFS', why:'หลายเงื่อนไข → ใช้ SUMIFS (sum_range, criteria_range1, criteria1, ...)'}),
+      ()=>({type:'mc', q:'ต้องการค้นหาชื่อจากรหัส SKU โดยมีคอลัมน์ผลลัพธ์อยู่ซ้ายของรหัส ใช้สูตรใดเหมาะสุด?', choices:['VLOOKUP','INDEX + MATCH','TEXTJOIN','COUNTIFS'], answer: 'INDEX + MATCH', why:'VLOOKUP เดินได้แต่ขวา → ใช้ INDEX + MATCH เพื่อเดินซ้ายได้'}),
+      ()=>({type:'fill', q:'เติมรูปแบบฟังก์ชันให้ถูกต้อง: XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])', answerPattern:/^\s*XLOOKUP\s*\(\s*lookup_value\s*,\s*lookup_array\s*,\s*return_array/i, why:'ต้องเรียงอาร์กิวเมนต์เป็น lookup_value → lookup_array → return_array'}),
+      ()=>({type:'read', q:'สูตรนี้ทำอะไร: =TEXTJOIN("-", TRUE, A2:C2)', answer: 'เชื่อมค่าในช่วง A2:C2 โดยใช้ "-" และข้ามช่องว่าง', why:'TEXTJOIN(delimiter, ignore_empty, text1, ...)' }),
+      ()=>({type:'mc', q:'ต้องการรายการ Region ที่ไม่ซ้ำและเรียงจาก A→Z ใช้อะไร?', choices:['UNIQUE','SORT','SORT(UNIQUE(...))','FILTER'], answer: 'SORT(UNIQUE(...))', why:'ดึงค่าไม่ซ้ำก่อน → แล้วค่อย SORT' }),
+      ()=>({type:'mc', q:'ต้องการกรองแถวที่ยอดขาย > 1000 และ Region = "West" แบบ Dynamic Array', choices:['FILTER','SUMIFS','COUNTIF','IF'], answer: 'FILTER', why:'FILTER(array, include) คืนตารางผลลัพธ์แบบ Dynamic Array'}),
+      ()=>({type:'mc', q:'ต้องการคำนวณปลายเดือนที่แล้ว ควรใช้?', choices:['EOMONTH(TODAY(), -1)','TODAY()-30','DATE(YEAR(TODAY()),MONTH(TODAY()),0)','TEXTJOIN'], answer: 'EOMONTH(TODAY(), -1)', why:'EOMONTH(start_date, months) ให้ปลายเดือนตาม offset'}),
+      ()=>({type:'read', q:'สูตรนี้ทำอะไร: =IF(AND(A2>0, B2<100),"OK","CHECK")', answer: 'ถ้า A2 > 0 และ B2 < 100 ให้ "OK" ไม่เช่นนั้นให้ "CHECK"', why:'AND() ต้องเป็นจริงทุกเงื่อนไข → IF(test, true, false)'})
     ];
     function buildQuizQuestions(level){ return pick(QUESTIONS_POOL.map(f=>f()), 10); }
-    function startQuiz(){ const qs = buildQuizQuestions(quizLevel.value); save('last_quiz', qs); renderQuiz(qs); }
+
+    function startQuiz(){
+      const qs = buildQuizQuestions(quizLevel.value);
+      save('last_quiz', qs);
+      quizStartTime = Date.now();
+      renderQuiz(qs);
+      quizSummary.style.display = 'none'; quizSummary.innerHTML = '';
+    }
+
     function renderQuiz(qs){
-      quizArea.innerHTML = ''; let answers = [];
+      quizArea.innerHTML = '';
+      // สร้างแต่ละข้อ
       qs.forEach((it, idx)=>{
-        const item = h('div',{className:'card'});
-        item.append(h('div',{className:'pill'}, `ข้อ ${idx+1}/${qs.length}`));
-        item.append(h('h3',{}, it.q));
+        const card = h('div',{className:'card', id:`q_${idx}`});
+        card.append(h('div',{className:'pill'}, `ข้อ ${idx+1}/${qs.length}`));
+        card.append(h('h3',{}, it.q));
+
+        // ช่องแสดงผลหลังตรวจ
+        const status = h('div',{className:'row', style:'margin-top:6px; display:none'}, 
+          h('span',{className:'q-badge', id:`q_${idx}_badge`}, ''),
+          h('span',{className:'q-explain', id:`q_${idx}_explain`}, '')
+        );
+        status.querySelector('.q-explain').style.marginLeft = '6px';
+
         if (it.type==='mc'){
           const grp = `q${idx}`;
           it.choices.forEach(ch=>{
             const label = h('label',{style:'display:flex; gap:10px; align-items:center; padding:6px 0; cursor:pointer'});
             const r = h('input',{type:'radio', name:grp, value:ch});
-            label.append(r, h('span',{}, ch)); item.append(label);
+            label.append(r, h('span',{}, ch));
+            card.append(label);
           });
         } else if (it.type==='fill'){
-          const inp = h('input',{type:'text', placeholder:'พิมพ์รูปแบบฟังก์ชันให้ถูกต้อง', style:'width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 30%, transparent); background: var(--card); color: var(--text)'}); item.append(inp);
+          const inp = h('input',{type:'text', placeholder:'พิมพ์รูปแบบฟังก์ชันให้ถูกต้อง', style:'width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 30%, transparent); background: var(--card); color: var(--text)'}); 
+          card.append(inp);
         } else if (it.type==='read'){
-          const inp = h('textarea',{rows:2, placeholder:'พิมพ์คำอธิบายสั้น ๆ', style:'width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 30%, transparent); background: var(--card); color: var(--text)'}); item.append(inp);
+          const inp = h('textarea',{rows:2, placeholder:'พิมพ์คำอธิบายสั้น ๆ', style:'width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in oklab, var(--muted) 30%, transparent); background: var(--card); color: var(--text)'}); 
+          card.append(inp);
         }
-        quizArea.append(item);
+        card.append(status);
+        quizArea.append(card);
       });
-      const submit = h('button',{className:'btn accent', style:'margin-top:12px'}, 'ส่งคำตอบ');
+
+      // ปุ่มส่งคำตอบ
+      const actionRow = h('div',{className:'row', style:'margin-top:12px'});
+      const submit = h('button',{className:'btn accent'}, 'ส่งคำตอบ');
+      const retry = h('button',{className:'btn ghost', style:'display:none'}, 'ทำใหม่');
+      actionRow.append(submit, retry);
+      quizArea.append(actionRow);
+
       on(submit,'click', ()=>{
-        let score=0;
+        let correct=0, wrong=0;
+        const total = qs.length;
+
         $$('#quizArea .card').forEach((card,i)=>{
-          const it = qs[i]; let ok=false;
+          const it = qs[i];
+          let ok=false, userAnswer='', explainText='';
+          const badge = card.querySelector('.q-badge');
+          const explain = card.querySelector('.q-explain');
+          const status = card.querySelector('.row:last-child');
+
           if (it.type==='mc'){
-            const v = card.querySelector('input[type=radio]:checked')?.value; ok = v===it.answer;
+            const sel = card.querySelector('input[type=radio]:checked');
+            userAnswer = sel?.value ?? '(ยังไม่เลือก)';
+            ok = userAnswer === it.answer;
+            explainText = ok ? 'เลือกได้ถูกต้อง' : `คำตอบที่ถูก: ${it.answer}`;
+            // disable radios
+            card.querySelectorAll('input[type=radio]').forEach(r=> r.disabled = true);
           } else if (it.type==='fill'){
-            const v = card.querySelector('input')?.value || ''; ok = it.answerPattern.test(v);
+            const v = card.querySelector('input')?.value || '';
+            userAnswer = v;
+            ok = it.answerPattern.test(v);
+            explainText = ok ? 'โครงสร้างอาร์กิวเมนต์ถูกต้องโดยรวม' : (it.why || 'รูปแบบยังไม่ถูกต้อง ลองตรวจลำดับอาร์กิวเมนต์');
+            card.querySelector('input').disabled = true;
           } else if (it.type==='read'){
-            const v = (card.querySelector('textarea')?.value || '').toLowerCase(); ok = ['เชื่อม','กรอง','รวม','ค้นหา','ถ้า'].some(k=> v.includes(k));
+            const v = (card.querySelector('textarea')?.value || '').toLowerCase();
+            userAnswer = v || '(เว้นว่าง)';
+            ok = ['เชื่อม','กรอง','รวม','ค้นหา','ถ้า','average','sum','filter','join','lookup'].some(k=> v.includes(k));
+            explainText = ok ? 'สื่อสารใจความได้ถูกต้อง' : (it.why || 'ลองอธิบายใจความหลักของสูตรให้ชัดขึ้น');
+            card.querySelector('textarea').disabled = true;
           }
-          if (ok) score++; card.style.outline = `2px solid ${ok? 'var(--ok)':'var(--danger)'}`;
+
+          if (ok) correct++; else wrong++;
+
+          // ตกแต่งการ์ด + ป้ายสถานะ
+          card.style.outline = `2px solid ${ok? 'var(--ok)':'var(--danger)'}`;
+          badge.textContent = ok ? '✅ ถูกต้อง' : '❌ ผิด';
+          badge.classList.toggle('ok', ok);
+          badge.classList.toggle('bad', !ok);
+          explain.textContent = explainText;
+          status.style.display = '';
+
         });
-        const pct = Math.round(score/qs.length*100); toast(`คุณได้ ${pct}%`);
+
+        // คะแนนรวม + เวลา
+        const pct = Math.round(correct/total*100);
+        const secs = Math.max(1, Math.round((Date.now() - quizStartTime)/1000));
+        toast(`คุณได้ ${pct}%`);
         if (pct>=80){ confettiBurst(); awardBadge() }
-        const hist = load('quiz_hist',[]); hist.push({ts:Date.now(), pct}); save('quiz_hist', hist);
+
+        // ประวัติ
+        const hist = load('quiz_hist',[]); hist.push({ts:Date.now(), pct, correct, total}); save('quiz_hist', hist);
+
+        // แสดงสรุปคะแนนถาวร
+        quizSummary.style.display = '';
+        quizSummary.innerHTML = `
+          <div class="q-summary">
+            <span class="stat">✅ ถูก: <b>${correct}</b></span>
+            <span class="stat">❌ ผิด: <b>${wrong}</b></span>
+            <span class="stat">🎯 คะแนน: <b>${pct}%</b></span>
+            <span class="stat">⏱️ เวลา: <b>${secs}s</b></span>
+            <span class="stat">${pct>=80 ? '🏅 ผ่านเกณฑ์ (≥80%)' : '💪 ลองใหม่อีกครั้ง'}</span>
+          </div>
+        `;
+
+        // ปิดการแก้ไข + โชว์ปุ่มทำใหม่
+        submit.disabled = true; submit.classList.add('q-disabled');
+        retry.style.display = '';
       });
-      quizArea.append(submit);
+
+      on(retry,'click', ()=> startQuiz());
     }
+
     function awardBadge(){ const key='badge_80'; if (!load(key,false)){ save(key,true); toast('🏅 ปลดล็อก Badge: Quiz 80%'); } }
 
+    // ==============================
     // Practice
+    // ==============================
     const practiceArea = $('#practiceArea'), practiceRefill = $('#practiceRefill');
     function genPracticeCards(){
       const picks = pick(FORMULAS, 6); practiceArea.innerHTML = '';
@@ -828,7 +925,9 @@
     }
     practiceRefill.onclick = genPracticeCards; genPracticeCards();
 
+    // ==============================
     // Playground (Mini Evaluator)
+    // ==============================
     function evalSimple(expr){
       const s = expr.trim().replace(/^=/,'').toUpperCase();
       const fnMatch = /^([A-Z]+)\s*\((.*)\)$/.exec(s);
@@ -884,7 +983,9 @@
       }
     });
 
+    // ==============================
     // INDEX Builder (Simplified)
+    // ==============================
     (function(){
       const el = {
         range: $('#idxRange'), sheet: $('#idxSheet'), abs: $('#idxAbs'),
@@ -992,7 +1093,9 @@
       showMode(); build();
     })();
 
+    // ==============================
     // Datasets
+    // ==============================
     const SAMPLE_CSV = `Region,Product,Qty,Price,Sales
 East,Apple,4,3,12
 East,Banana,3,2,6
@@ -1043,7 +1146,6 @@ West,Apple,2,3,6`;
     // =========================================
     // Explain — Deep, Step-by-step Explainer
     // =========================================
-    // 1) Function catalog: arguments, defaults, notes, pitfalls
     const FCAT = {
       SUMIF: {
         summary: 'รวมค่าที่ตรงตามเงื่อนไขเดียว',
@@ -1237,7 +1339,7 @@ West,Apple,2,3,6`;
       LAMBDA:{ summary:'นิยามฟังก์ชันแบบกำหนดเอง', args:['[parameter1]','[parameter2]','...','calculation'], returns:'ค่าตามนิยาม' }
     };
 
-    // 2) Parser — สร้างต้นไม้ของสูตร
+    // Parser (สำหรับ Explain)
     function parseFormula(formula){
       let s = String(formula || '').trim();
       if (!s) return null;
@@ -1247,102 +1349,66 @@ West,Apple,2,3,6`;
       function skip(){ while (i<s.length && /\s/.test(s[i])) i++; }
       function peek() { return s[i]; }
       function readIdent(){
-        let start=i;
-        while(i<s.length && /[A-Za-z_\.]/.test(s[i])) i++;
-        return s.slice(start,i);
+        let start=i; while(i<s.length && /[A-Za-z_\.]/.test(s[i])) i++; return s.slice(start,i);
       }
       function readNumber(){
-        let start=i;
-        while(i<s.length && /[0-9\.\-+E]/i.test(s[i])) i++;
-        return {type:'Literal', kind:'number', value: s.slice(start,i)};
+        let start=i; while(i<s.length && /[0-9\.\-+E]/i.test(s[i])) i++; return {type:'Literal', kind:'number', value: s.slice(start,i)};
       }
       function readString(){
-        const q = s[i++]; let out=''; while(i<s.length){
-          const c = s[i++]; if (c===q) break; if (c==='\\' && s[i]===q){ out+=q; i++; } else out+=c;
-        }
-        return {type:'Literal', kind:'string', value: out};
+        const q = s[i++]; let out=''; while(i<s.length){ const c = s[i++]; if (c===q) break; if (c==='\\' && s[i]===q){ out+=q; i++; } else out+=c; } return {type:'Literal', kind:'string', value: out};
       }
       function readRefOrBoolOrIdent(){
-        const start=i;
-        while(i<s.length && /[^,\)\(]/.test(s[i])) i++;
-        const raw = s.slice(start,i).trim();
+        const start=i; while(i<s.length && /[^,\)\(]/.test(s[i])) i++; const raw = s.slice(start,i).trim();
         if (/^(TRUE|FALSE)$/.test(raw.toUpperCase())) return {type:'Literal', kind:'boolean', value: raw.toUpperCase()};
         return {type:'Ref', value: raw};
       }
       function readArg(){
-        skip();
-        const c = peek();
+        skip(); const c = peek();
         if (c === '"' || c === "'") return readString();
         if (/[0-9\+\-\.]/.test(c)) return readNumber();
         if (/[A-Za-z_]/.test(c)){
-          const name = readIdent();
-          skip();
+          const name = readIdent(); skip();
           if (peek()==='('){
-            i++; // (
-            const args = [];
+            i++; const args = [];
             while (true){
-              skip();
-              if (peek()===')'){ i++; break; }
-              args.push(readArg());
-              skip();
+              skip(); if (peek()===')'){ i++; break; }
+              args.push(readArg()); skip();
               if (peek()===','){ i++; continue; }
               if (peek()===')'){ i++; break; }
-              // unexpected — consume safely
               if (i>=s.length) break;
             }
             return {type:'Call', name: name.toUpperCase(), args};
           } else {
-            // could be Ref/Name
-            // consume until comma/paren
             while(i<s.length && /[^,\)]/.test(s[i])) i++;
-            const token = (name + s.slice(i - (s[i-1] ? 0:0), i)).trim(); // name only
-            return {type:'Ref', value: token || name};
+            return {type:'Ref', value: name};
           }
         }
-        // fallback: read until comma/close
         return readRefOrBoolOrIdent();
       }
 
-      // top-level can be a Call or expression
-      const node = readArg();
-      return node;
+      return readArg();
     }
 
-    // pretty print node back to excel-ish string
     function pp(node){
       if (!node) return '';
-      if (node.type==='Literal'){
-        if (node.kind==='string') return `"${node.value.replace(/"/g,'""')}"`;
-        return String(node.value);
-      }
+      if (node.type==='Literal'){ if (node.kind==='string') return `"${node.value.replace(/"/g,'""')}"`; return String(node.value); }
       if (node.type==='Ref') return node.value;
       if (node.type==='Call') return `${node.name}(${node.args.map(pp).join(', ')})`;
       return '';
     }
 
-    // classify span chip
     function chipFor(node){
-      let label=''; let cls='chip';
-      if (!node) return '';
+      let label=''; if (!node) return '';
       if (node.type==='Literal'){
         if (node.kind==='string') label='ข้อความ';
         else if (node.kind==='number') label='ตัวเลข';
         else if (node.kind==='boolean') label='ตรรกะ';
       } else if (node.type==='Ref'){
         label = /:|!|\$/.test(node.value) || /[A-Za-z]+\d/.test(node.value) ? 'ช่วง/อ้างอิง' : 'ชื่อ/นิพจน์';
-      } else if (node.type==='Call'){
-        label = `ฟังก์ชัน ${node.name}`;
-      }
+      } else if (node.type==='Call'){ label = `ฟังก์ชัน ${node.name}`; }
       return `<span class="chip">${label}</span>`;
     }
 
-    function toText(node){
-      // plain text for copy
-      const div = document.createElement('div'); div.innerHTML = explainHTML(node, {mode: $('#explainMode').value, pitfalls: $('#showPitfalls').checked, alt: $('#showAlternatives').checked});
-      return div.innerText;
-    }
-
-    // 3) Explain renderer
     function explainHTML(node, opts){
       opts = Object.assign({mode:'detailed', pitfalls:true, alt:true}, opts||{});
       if (!node) return `<div class="muted">ยังไม่มีสูตร</div>`;
@@ -1358,12 +1424,10 @@ West,Apple,2,3,6`;
           </div>
         `;
 
-        // arguments mapping
         let mapped = [];
         if (typeof meta.mapArgs === 'function'){
           mapped = meta.mapArgs(args.map(a=> pp(a)));
         } else {
-          // fallback map in order
           mapped = (meta.args||[]).map((label, i)=> [label, pp(args[i])]);
           if (args.length > (meta.args||[]).length){
             for (let j=(meta.args||[]).length;j<args.length;j++) mapped.push([`อาร์กิวเมนต์ที่ ${j+1}`, pp(args[j])]);
@@ -1371,11 +1435,10 @@ West,Apple,2,3,6`;
         }
 
         const list = mapped.map(([label, val], idx)=>{
-          const rawNode = node.args[idx]; // may be undefined if extra mapping
+          const rawNode = node.args[idx];
           const nested = rawNode && rawNode.type==='Call';
           const short = `<li><b>${label}</b>: <span class="code">${val ?? '(เว้นว่าง)'}</span> ${chipFor(rawNode || {type:'Ref', value: val||''})}</li>`;
           if (!nested || opts.mode==='basic') return short;
-          // nested → put details
           return `
             <li>
               <div><b>${label}</b>: <span class="code">${val ?? '(เว้นว่าง)'}</span> ${chipFor(rawNode)}</div>
@@ -1387,7 +1450,6 @@ West,Apple,2,3,6`;
           `;
         }).join('');
 
-        // Step-by-step narration (selective by function)
         function narrative(){
           const n = node.name;
           const P = (i)=> pp(args[i]||{type:'Ref', value:''});
@@ -1399,7 +1461,7 @@ West,Apple,2,3,6`;
                 </div>
                 <div style="margin-top:6px">
                   ${args.slice(1).map((_,i)=> i%2===0
-                    ? `<div>2.${Math.floor(i/2)+1}) กรองด้วยเงื่อนไข: <span class="code">${P(1+i)}</span> ในช่วง <span class="code">${P(1+i+1)}</span></div>`
+                    ? `<div>2.${Math.floor(i/2)+1}) กรองด้วยเงื่อนไข: <span class="code">${P(1+i+1)}</span> ในช่วง <span class="code">${P(1+i)}</span></div>`
                     : ''
                   ).join('')}
                   <div style="margin-top:6px">3) รวมค่าที่เหลืออยู่ทั้งหมด</div>
@@ -1433,7 +1495,6 @@ West,Apple,2,3,6`;
           return '';
         }
 
-        // Notes & Pitfalls
         function notesBlock(){
           const blocks = [];
           if (FCAT[node.name]?.notes?.length && opts.alt){
@@ -1476,7 +1537,6 @@ West,Apple,2,3,6`;
       return `<div class="muted">ไม่สามารถวิเคราะห์สูตรนี้ได้</div>`;
     }
 
-    // Wire Explain UI
     const exInput = $('#explainInput');
     const exOut = $('#explainOut');
     function runExplain(){
@@ -1488,10 +1548,13 @@ West,Apple,2,3,6`;
       save('last_explain', raw);
     }
     $('#doExplain').onclick = runExplain;
-    $('#copyExplain').onclick = ()=> copy( toText(parseFormula(exInput.value||'')) );
+    $('#copyExplain').onclick = ()=> {
+      const node = parseFormula(exInput.value||'');
+      const div = document.createElement('div'); div.innerHTML = explainHTML(node, {mode: $('#explainMode').value, pitfalls: $('#showPitfalls').checked, alt: $('#showAlternatives').checked});
+      copy(div.innerText);
+    };
     on(exInput,'keydown',(e)=>{ if (e.ctrlKey && e.key==='Enter') runExplain() });
 
-    // Restore last explained if any
     const last = load('last_explain','');
     if (last){ exInput.value = last; }
 
