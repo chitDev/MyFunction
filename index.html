@@ -65,9 +65,9 @@
 <header>
   <h1>Excel Formula Coach — Tutorial • Quiz • Practice • Datasets</h1>
   <div class="actions">
-    <button id="btnReset" class="btn danger">รีเซ็ตทั้งหมด</button>
-    <button id="btnExportState" class="btn">บันทึกผลการเรียน</button>
-    <button id="btnImportState" class="btn">กู้คืนผลการเรียน</button>
+    <button id="btnReset" class="btn danger">รีเซ็ตความคืบหน้า</button>
+    <button id="btnExportState" class="btn">ส่งออกความคืบหน้า</button>
+    <button id="btnImportState" class="btn">นำเข้า</button>
     <input id="stateFile" type="file" accept=".json" class="sr" />
   </div>
 </header>
@@ -724,7 +724,9 @@ function renderPractice(fn){
     <div class="split">
       <div>
         <label for="ans" class="muted">พิมพ์สูตร Excel (เริ่มด้วยเครื่องหมาย =)</label>
-        <input id="ans" value="${escapeHTML(state.answer||'')}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0b1220;color:var(--text)" placeholder="เช่น ${fn.practice.sample || '=...'}" />
+        <input id="ans" value="${escapeHTML(state.answer||'')}"
+  style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0b1220;color:var(--text)"
+  placeholder="เช่น ${escapeHTML(fn.practice.sample || '=...')}" />
         <div style="margin-top:10px;display:flex;gap:8px">
           <button class="btn primary" id="btnCheck">ตรวจคำตอบ</button>
           <button class="btn" id="btnHint">Hint</button>
@@ -851,4 +853,3 @@ renderAllPanels();
 </script>
 </body>
 </html>
-
